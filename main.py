@@ -2,6 +2,7 @@ import pygame
 import sys
 import os
 import random
+from helper.aspect_scale import aspect_scale
 
 # Initialize Pygame
 pygame.init()
@@ -14,27 +15,31 @@ pygame.display.set_caption("Nyan Cat Movement")
 # Get the current script's directory
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
+image_dir = current_dir + "/assets/images/"
 # Load background image
-background = pygame.image.load(os.path.join(current_dir, "galaxy.jpg"))
+background = pygame.image.load(os.path.join(image_dir,  "galaxy.jpg"))
 background = pygame.transform.scale(background, window_size)
 
 # Load original Nyan Cat image facing right
-nyan_cat_right = pygame.image.load(os.path.join(current_dir, "nyan-cat.png"))
-nyan_cat_right = pygame.transform.scale(nyan_cat_right, (150, 150))  # Adjust size as needed
+player_left = pygame.image.load(os.path.join(image_dir, "player.png"))
+#player_left = pygame.transform.scale(player_left, (150, 150))  # Adjust size as needed
+player_left = aspect_scale(player_left, 200, 200) 
 
+
+print(player_left)
 # Flip Nyan Cat image to face left
-nyan_cat_left = pygame.transform.flip(nyan_cat_right, True, False)
+player_right = pygame.transform.flip(player_left, True, False)
 
-# Load treats image
-treats_image = pygame.image.load(os.path.join(current_dir, "treats.png"))
-treats_image = pygame.transform.scale(treats_image, (40, 40))  # Adjust size as needed
+# Load oxygen_tank image
+oxygen_tank_image = pygame.image.load(os.path.join(image_dir, "oxygen_tank.png"))
+oxygen_tank_image = aspect_scale(oxygen_tank_image, 40, 40)
 
 # Initial position of Nyan Cat
-nyan_cat_rect = nyan_cat_right.get_rect()
-nyan_cat_rect.center = window_size[0] // 2, window_size[1] // 2
+player_rect = player_left.get_rect()
+player_rect.center = window_size[0] // 2, window_size[1] // 2
 
 # Create a smaller rect for collision detection
-nyan_cat_collision_rect = pygame.Rect(nyan_cat_rect.x + 40, nyan_cat_rect.y, 70, 90)
+player_collision_rect = pygame.Rect(player_rect.x + 40, player_rect.y, 70, 90)
 
 # Set the speed of Nyan Cat
 speed = 5
@@ -62,7 +67,7 @@ class NyanCatCollisionRect(pygame.sprite.Sprite):
         self.rect = rect
 
 # Create sprite for the Nyan Cat collision rectangle
-nyan_cat_collision_sprite = NyanCatCollisionRect(nyan_cat_collision_rect)
+player_collision_sprite = NyanCatCollisionRect(player_collision_rect)
 
 # Function to spawn asteroid
 def spawn_asteroid():
@@ -85,8 +90,8 @@ def spawn_asteroid():
     asteroid_timers.append(random.randint(200, 500))
 
 # Load asteroid image
-asteroid_image = pygame.image.load(os.path.join(current_dir, "asteroid.png"))
-asteroid_image = pygame.transform.scale(asteroid_image, (50, 50))  # Adjust size as needed
+asteroid_image = pygame.image.load(os.path.join(image_dir, "asteroid.png"))
+asteroid_image = aspect_scale(asteroid_image, 50, 50)
 
 # List to store asteroid positions
 asteroid_positions = []
@@ -112,38 +117,38 @@ while True:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
-        nyan_cat_rect.x -= speed
+        player_rect.x -= speed
         direction = "left"
         # Ensure Nyan Cat stays within the left boundary
-        nyan_cat_rect.x = max(nyan_cat_rect.x, 0)
+        player_rect.x = max(player_rect.x, 0)
     elif keys[pygame.K_RIGHT]:
-        nyan_cat_rect.x += speed
+        player_rect.x += speed
         direction = "right"
         # Ensure Nyan Cat stays within the right boundary
-        nyan_cat_rect.x = min(nyan_cat_rect.x, window_size[0] - nyan_cat_rect.width)
+        player_rect.x = min(player_rect.x, window_size[0] - player_rect.width)
     elif keys[pygame.K_UP]:
-        nyan_cat_rect.y -= speed
+        player_rect.y -= speed
         # Ensure Nyan Cat stays within the top boundary
-        nyan_cat_rect.y = max(nyan_cat_rect.y, 0)
+        player_rect.y = max(player_rect.y, 0)
     elif keys[pygame.K_DOWN]:
-        nyan_cat_rect.y += speed
+        player_rect.y += speed
         # Ensure Nyan Cat stays within the bottom boundary
-        nyan_cat_rect.y = min(nyan_cat_rect.y, window_size[1] - nyan_cat_rect.height)
+        player_rect.y = min(player_rect.y, window_size[1] - player_rect.height)
 
     # Update the smaller collision rect's position
-    nyan_cat_collision_rect.topleft = (nyan_cat_rect.x + 40, nyan_cat_rect.y + 20)
+    player_collision_rect.topleft = (player_rect.x + 40, player_rect.y + 20)
 
-    # Randomly spawn treats
+    # Randomly spawn oxygen_tank
     spawn_timer += clock.get_rawtime()
     if spawn_timer >= spawn_interval:
         spawn_timer = 0
-        treat_x = random.randint(0, window_size[0] - treats_image.get_width())
-        treat_y = random.randint(0, window_size[1] - treats_image.get_height())
-        treat_rect = pygame.Rect(treat_x, treat_y, treats_image.get_width(), treats_image.get_height())
+        treat_x = random.randint(0, window_size[0] - oxygen_tank_image.get_width())
+        treat_y = random.randint(0, window_size[1] - oxygen_tank_image.get_height())
+        treat_rect = pygame.Rect(treat_x, treat_y, oxygen_tank_image.get_width(), oxygen_tank_image.get_height())
 
-        # Check if Nyan Cat is not at the treat location and there are no other treats there
+        # Check if Nyan Cat is not at the treat location and there are no other oxygen_tank there
         if (
-            not nyan_cat_rect.colliderect(treat_rect)
+            not player_rect.colliderect(treat_rect)
             and not any(treat_rect.colliderect(existing_treat) for existing_treat in treat_positions)
         ):
             treat_positions.append(treat_rect)
@@ -153,11 +158,11 @@ while True:
     # Draw background and Nyan Cat
     screen.blit(background, (0, 0))
 
-    # Draw treats and update timers
+    # Draw oxygen_tank and update timers
     for i in range(len(treat_positions)):
-        screen.blit(treats_image, treat_positions[i])
+        screen.blit(oxygen_tank_image, treat_positions[i])
         treat_timers[i] -= clock.get_rawtime()
-        if nyan_cat_collision_rect.colliderect(treat_positions[i]):
+        if player_collision_rect.colliderect(treat_positions[i]):
             # Increment points and remove treat
             points += 1
             treat_positions.pop(i)
@@ -194,7 +199,7 @@ while True:
         asteroids_group.add(asteroid_sprite)
 
     # Check for collision with asteroids
-    if pygame.sprite.spritecollide(nyan_cat_collision_sprite, asteroids_group, False):
+    if pygame.sprite.spritecollide(player_collision_sprite, asteroids_group, False):
         # Display game over text
         game_over_text = pygame.font.Font(None, 72).render("Game Over", True, (255, 0, 0))
         game_over_rect = game_over_text.get_rect(center=(window_size[0] // 2, window_size[1] // 2))
@@ -212,11 +217,11 @@ while True:
 
     # Draw Nyan Cat
     if direction == "right":
-        nyan_cat = nyan_cat_right
+        player = player_right
     else:
-        nyan_cat = nyan_cat_left
+        player = player_left
 
-    screen.blit(nyan_cat, nyan_cat_rect)
+    screen.blit(player, player_rect)
 
     render_text(f"Points: {points}", (255, 255, 255), (window_size[0] - 150, 20))
 
