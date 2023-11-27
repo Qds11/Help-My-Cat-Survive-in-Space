@@ -85,18 +85,23 @@ def spawn_asteroid():
     if side == "top":
         x = random.randint(0, window_size[0] - asteroid_image.get_width())
         y = -asteroid_image.get_height()
+        velocity = (random.uniform(-1, 1), random.uniform(0.5, 1))  # Random velocity downwards
     elif side == "bottom":
         x = random.randint(0, window_size[0] - asteroid_image.get_width())
         y = window_size[1]
+        velocity = (random.uniform(-1, 1), random.uniform(-1, -0.5))  # Random velocity upwards
     elif side == "left":
         x = -asteroid_image.get_width()
         y = random.randint(0, window_size[1] - asteroid_image.get_height())
+        velocity = (random.uniform(0.5, 1), random.uniform(-1, 1))  # Random velocity to the right
     elif side == "right":
         x = window_size[0]
         y = random.randint(0, window_size[1] - asteroid_image.get_height())
+        velocity = (random.uniform(-1, -0.5), random.uniform(-1, 1))  # Random velocity to the left
 
     asteroid_rect = pygame.Rect(x, y, asteroid_image.get_width(), asteroid_image.get_height())
     asteroid_positions.append(asteroid_rect)
+    asteroid_velocities.append(velocity)
     asteroid_timers.append(random.randint(200, 500))
 
 # Load asteroid image
@@ -105,6 +110,7 @@ asteroid_image = aspect_scale(asteroid_image, 70, 70)
 
 # List to store asteroid positions
 asteroid_positions = []
+asteroid_velocities =[]
 asteroid_timers = []
 
 # Create a sprite group for asteroids
@@ -194,12 +200,14 @@ while True:
 
     # Move asteroids and update timers
     for i in range(len(asteroid_positions)):
-        asteroid_positions[i].x += asteroid_speed * 2  # Adjust the speed as needed
+        asteroid_positions[i].x += asteroid_speed * asteroid_velocities[i][0]  # Adjust the speed as needed
+        asteroid_positions[i].y += asteroid_speed * asteroid_velocities[i][1]
         screen.blit(asteroid_image, asteroid_positions[i])
         asteroid_timers[i] -= clock.get_rawtime()
         if asteroid_timers[i] <= 0:
-            # Remove asteroid and its timer when the time is up
+            # Remove asteroid, its timer, and velocity when the time is up
             asteroid_positions.pop(i)
+            asteroid_velocities.pop(i)
             asteroid_timers.pop(i)
             break
 
