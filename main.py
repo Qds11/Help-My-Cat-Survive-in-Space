@@ -52,7 +52,7 @@ player_collision_rect = pygame.Rect(player_rect.x, player_rect.y, 80, 70)
 # Set the speed of player
 speed = 7
 
-asteroid_speed=9
+asteroid_speed= 9
 
 # Initial direction
 direction = "right"
@@ -206,7 +206,6 @@ while True:
     elif current_state == "instructions":
         display_instructions()
     elif current_state == "playing":
-
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             player_rect.x -= speed
@@ -311,6 +310,7 @@ while True:
 
             # Wait for a few seconds before quitting
             pygame.time.delay(3000)  # 3000 milliseconds (3 seconds)
+            screen.fill(WHITE)
             current_state = "start_screen"
            # sys.exit()
 
@@ -322,7 +322,7 @@ while True:
 
         screen.blit(player, player_rect)
 
-        current_time = pygame.time.get_ticks()
+        current_time = pygame.time.get_ticks() - start_time
         elapsed_time = current_time - last_time
         last_time = current_time
         total_elapsed_time += elapsed_time
@@ -330,7 +330,8 @@ while True:
         health -= HEALTH_DECREASE_RATE * (elapsed_time / 1000.0)
 
         # Cap the health value
-        health = max(health, 0.0)
+        if health > 1:
+            health = 1
 
         # Draw health bar background
         pygame.draw.rect(screen, WHITE, (10, 10, 200, 30))
