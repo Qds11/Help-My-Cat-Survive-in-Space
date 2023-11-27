@@ -10,9 +10,9 @@ pygame.init()
 # Set up display
 window_size = (900, 700)
 screen = pygame.display.set_mode(window_size)
-pygame.display.set_caption("player Movement")
+# pygame.display.set_caption("player Movement")
 
-#constants
+# constants
 HEALTH_DECREASE_RATE = 0.05
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -123,6 +123,7 @@ spawn_interval = 200
 spawn_timer_asteroid = 0
 spawn_interval_asteroid = 200
 last_time=0
+total_elapsed_time = 0
 
 treat_timers = []
 
@@ -131,7 +132,6 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
@@ -224,6 +224,15 @@ while True:
         game_over_text = pygame.font.Font(None, 72).render("Game Over", True, (255, 0, 0))
         game_over_rect = game_over_text.get_rect(center=(window_size[0] // 2, window_size[1] // 2))
         screen.blit(game_over_text, game_over_rect)
+
+        # Display time survived
+        minutes = total_elapsed_time // 60000
+        seconds = (total_elapsed_time // 1000) % 60
+
+        time_text = font.render(f"Time Survived: {minutes:02}:{seconds:02}", True, WHITE)
+        time_rect = time_text.get_rect(center=(window_size[0] // 2, window_size[1] // 2 + 50))
+        screen.blit(time_text, time_rect)
+
         pygame.display.flip()
 
         # Wait for a few seconds before quitting
@@ -242,6 +251,8 @@ while True:
     current_time = pygame.time.get_ticks()
     elapsed_time = current_time - last_time
     last_time = current_time
+    total_elapsed_time += elapsed_time
+
     health -= HEALTH_DECREASE_RATE * (elapsed_time / 1000.0)
 
     # Cap the health value
