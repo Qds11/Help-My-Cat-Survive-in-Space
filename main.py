@@ -24,6 +24,13 @@ health = 1.0
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 image_dir = current_dir + "/assets/images/"
+sound_dir = current_dir + "/assets/sound/"
+
+background_music = pygame.mixer.Sound(os.path.join(sound_dir, 'main.mp3'))
+crash_sound = pygame.mixer.Sound(os.path.join(sound_dir, 'crash.wav'))
+ping_sound = pygame.mixer.Sound(os.path.join(sound_dir, 'ping.wav'))
+
+background_music.play(-1)
 # Load background image
 background = pygame.image.load(os.path.join(image_dir,  "galaxy.jpg"))
 background = pygame.transform.scale(background, window_size)
@@ -47,7 +54,7 @@ player_rect = player_left.get_rect()
 player_rect.center = window_size[0] // 2, window_size[1] // 2
 
 # Create a smaller rect for collision detection
-player_collision_rect = pygame.Rect(player_rect.x, player_rect.y, 80, 70)
+player_collision_rect = pygame.Rect(player_rect.x, player_rect.y, 90, 70)
 
 # Set the speed of player
 speed = 7
@@ -243,8 +250,7 @@ while True:
                 and not any(treat_rect.colliderect(existing_treat) for existing_treat in treat_positions)
             ):
                 treat_positions.append(treat_rect)
-                # Add a timer for the treat (5 to 7 seconds)
-                treat_timers.append(random.randint(300, 700))
+                treat_timers.append(random.randint(700, 1000))
 
         # Draw background and player
         screen.blit(background, (0, 0))
@@ -255,6 +261,7 @@ while True:
             treat_timers[i] -= clock.get_rawtime()
             if player_collision_rect.colliderect(treat_positions[i]):
                 # Increment points and remove oxygen_tank
+                ping_sound.play()
                 health += 0.1
                 treat_positions.pop(i)
                 treat_timers.pop(i)
@@ -265,9 +272,14 @@ while True:
                 treat_timers.pop(i)
                 break
 
+        current_time = pygame.time.get_ticks() - start_time
+        elapsed_time = current_time - last_time
+        last_time = current_time
+        total_elapsed_time += elapsed_time
+
         # Spawn asteroid
         spawn_timer_asteroid += clock.get_rawtime()
-        if spawn_timer_asteroid >= spawn_interval_asteroid:
+        if spawn_timer_asteroid >= spawn_interval_asteroid and current_time > 2000:
             spawn_timer_asteroid = 0
             spawn_asteroid()
 
@@ -293,6 +305,7 @@ while True:
 
         # Check for collision with asteroids
         if pygame.sprite.spritecollide(player_collision_sprite, asteroids_group, False):
+            crash_sound.play()
             # Display game over text
             game_over_text = pygame.font.Font(None, 72).render("Game Over", True, (255, 0, 0))
             game_over_rect = game_over_text.get_rect(center=(window_size[0] // 2, window_size[1] // 2))
@@ -321,11 +334,6 @@ while True:
             player = player_left
 
         screen.blit(player, player_rect)
-
-        current_time = pygame.time.get_ticks() - start_time
-        elapsed_time = current_time - last_time
-        last_time = current_time
-        total_elapsed_time += elapsed_time
 
         health -= HEALTH_DECREASE_RATE * (elapsed_time / 1000.0)
 
