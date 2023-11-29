@@ -15,7 +15,8 @@ screen = pygame.display.set_mode(window_size)
 pygame.display.set_caption("Space Explorer")
 
 # constants
-HEALTH_DECREASE_RATE = 0.05
+HEALTH_DECREASE_RATE = 0.07
+BLACK = (0,0,0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
@@ -95,19 +96,19 @@ def spawn_asteroid():
     if side == "top":
         x = random.randint(0, window_size[0] - asteroid_image.get_width())
         y = -asteroid_image.get_height()
-        velocity = (random.uniform(-1, 1), random.uniform(0.5, 1))  # Random velocity downwards
+        velocity = (random.uniform(-1, 1), random.uniform(0.7, 1))  # Random velocity downwards
     elif side == "bottom":
         x = random.randint(0, window_size[0] - asteroid_image.get_width())
         y = window_size[1]
-        velocity = (random.uniform(-1, 1), random.uniform(-1, -0.5))  # Random velocity upwards
+        velocity = (random.uniform(-1, 1), random.uniform(-1, -0.7))  # Random velocity upwards
     elif side == "left":
         x = -asteroid_image.get_width()
         y = random.randint(0, window_size[1] - asteroid_image.get_height())
-        velocity = (random.uniform(0.5, 1), random.uniform(-1, 1))  # Random velocity to the right
+        velocity = (random.uniform(0.7, 1), random.uniform(-1, 1))  # Random velocity to the right
     elif side == "right":
         x = window_size[0]
         y = random.randint(0, window_size[1] - asteroid_image.get_height())
-        velocity = (random.uniform(-1, -0.5), random.uniform(-1, 1))  # Random velocity to the left
+        velocity = (random.uniform(-1, -0.7), random.uniform(-1, 1))  # Random velocity to the left
 
     asteroid_rect = pygame.Rect(x, y, asteroid_image.get_width(), asteroid_image.get_height())
     asteroid_positions.append(asteroid_rect)
@@ -134,13 +135,13 @@ def start_screen():
     screen.blit(title_text, title_rect)
 
     start_button = pygame.Rect(window_size[0] // 4, window_size[1] // 2, window_size[0] // 2, 50)
-    pygame.draw.rect(screen, (0, 255, 0), start_button)
+    pygame.draw.rect(screen, BLACK, start_button)
     start_text = font.render("Start Game", True, WHITE)
     start_text_rect = start_text.get_rect(center=start_button.center)
     screen.blit(start_text, start_text_rect)
 
     instructions_button = pygame.Rect(window_size[0] // 4, window_size[1] // 2 + 100, window_size[0] // 2, 50)
-    pygame.draw.rect(screen, (0, 255, 0), instructions_button)
+    pygame.draw.rect(screen, BLACK, instructions_button)
     instructions_text = font.render("Instructions", True, WHITE)
     instructions_text_rect = instructions_text.get_rect(center=instructions_button.center)
     screen.blit(instructions_text, instructions_text_rect)
@@ -148,6 +149,30 @@ def start_screen():
     pygame.display.flip()
 
     return start_button, instructions_button
+
+def game_over():
+    screen.blit(background, (0,0))
+    game_over_text = pygame.font.Font(None, 72).render("Game Over", True, RED)
+    game_over_rect = game_over_text.get_rect(center=(window_size[0] // 2, window_size[1] // 2))
+    screen.blit(game_over_text, game_over_rect)
+
+    # Display time survived
+    minutes = total_elapsed_time // 60000
+    seconds = (total_elapsed_time // 1000) % 60
+
+    time_text = font.render(f"Time Survived: {minutes:02}:{seconds:02}", True, WHITE)
+    time_rect = time_text.get_rect(center=(window_size[0] // 2, window_size[1] // 2 + 50))
+    screen.blit(time_text, time_rect)
+
+    pygame.display.flip()
+    asteroid_positions.clear()
+    asteroid_velocities.clear()
+    asteroid_timers.clear()
+
+    # Wait for a few seconds before going back to start screen
+    pygame.time.delay(3000)
+
+    return "start_screen"
 
 # Function to display instructions
 def display_instructions():
@@ -287,7 +312,7 @@ while True:
 
         # Move asteroids and update timers
         for i in range(len(asteroid_positions)):
-            asteroid_positions[i].x += asteroid_speed * asteroid_velocities[i][0]  
+            asteroid_positions[i].x += asteroid_speed * asteroid_velocities[i][0]
             asteroid_positions[i].y += asteroid_speed * asteroid_velocities[i][1]
             screen.blit(asteroid_image, asteroid_positions[i])
             asteroid_timers[i] -= clock.get_rawtime()
@@ -323,28 +348,10 @@ while True:
         # Check for collision with asteroids
         if pygame.sprite.spritecollide(player_collision_sprite, asteroids_group, False):
             crash_sound.play()
-            # Display game over text
-            game_over_text = pygame.font.Font(None, 72).render("Game Over", True, (255, 0, 0))
-            game_over_rect = game_over_text.get_rect(center=(window_size[0] // 2, window_size[1] // 2))
-            screen.blit(game_over_text, game_over_rect)
+            current_state = game_over()
 
-            # Display time survived
-            minutes = total_elapsed_time // 60000
-            seconds = (total_elapsed_time // 1000) % 60
-
-            time_text = font.render(f"Time Survived: {minutes:02}:{seconds:02}", True, WHITE)
-            time_rect = time_text.get_rect(center=(window_size[0] // 2, window_size[1] // 2 + 50))
-            screen.blit(time_text, time_rect)
-
-            pygame.display.flip()
-            asteroid_positions.clear()
-            asteroid_velocities.clear()
-            asteroid_timers.clear()
-
-            # Wait for a few seconds before going back to start screen
-            pygame.time.delay(3000)
-
-            current_state = "start_screen"
+        if health <= 0:
+            current_state = game_over()
 
         # Draw health bar background
         pygame.draw.rect(screen, WHITE, (10, 10, 200, 30))
