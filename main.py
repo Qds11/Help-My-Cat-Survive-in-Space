@@ -8,7 +8,9 @@ from helper.aspect_scale import aspect_scale
 pygame.init()
 
 # Set up display
-window_size = (900, 700)
+WINDOW_WIDTH = 900
+WINDOW_HEIGHT = 700
+window_size = (WINDOW_WIDTH, WINDOW_HEIGHT)
 screen = pygame.display.set_mode(window_size)
 pygame.display.set_caption("Space Explorer")
 
@@ -37,7 +39,6 @@ background = pygame.transform.scale(background, window_size)
 
 # Load original player image facing right
 player_left = pygame.image.load(os.path.join(image_dir, "player.png"))
-#player_left = pygame.transform.scale(player_left, (150, 150))  # Adjust size as needed
 player_left = aspect_scale(player_left, 230, 230)
 
 
@@ -54,12 +55,12 @@ player_rect = player_left.get_rect()
 player_rect.center = window_size[0] // 2, window_size[1] // 2
 
 # Create a smaller rect for collision detection
-player_collision_rect = pygame.Rect(player_rect.x, player_rect.y, 90, 70)
+player_collision_rect = pygame.Rect(player_rect.x, player_rect.y, 155, 80)
 
 # Set the speed of player
 speed = 7
 
-asteroid_speed= 9
+asteroid_speed= 10
 
 # Initial direction
 direction = "right"
@@ -86,6 +87,7 @@ class NyanCatCollisionRect(pygame.sprite.Sprite):
 
 # Create sprite for the player collision rectangle
 player_collision_sprite = NyanCatCollisionRect(player_collision_rect)
+
 
 # Function to spawn asteroid
 def spawn_asteroid():
@@ -223,7 +225,7 @@ while True:
             player_rect.x += speed
             direction = "right"
             # Ensure player stays within the right boundary
-            player_rect.x = min(player_rect.x, window_size[0] - player_rect.width)
+            player_rect.x = min(player_rect.x, window_size[0] - player_collision_rect.width)
         elif keys[pygame.K_UP]:
             player_rect.y -= speed
             # Ensure player stays within the top boundary
@@ -285,11 +287,11 @@ while True:
 
         # Move asteroids and update timers
         for i in range(len(asteroid_positions)):
-            asteroid_positions[i].x += asteroid_speed * asteroid_velocities[i][0]  # Adjust the speed as needed
+            asteroid_positions[i].x += asteroid_speed * asteroid_velocities[i][0]  
             asteroid_positions[i].y += asteroid_speed * asteroid_velocities[i][1]
             screen.blit(asteroid_image, asteroid_positions[i])
             asteroid_timers[i] -= clock.get_rawtime()
-            if asteroid_timers[i] <= 0:
+            if asteroid_timers[i] <= 0 and (asteroid_positions[i].x > WINDOW_WIDTH or asteroid_positions[i].x <0) or (asteroid_positions[i].y < 0 or asteroid_positions[i].y > WINDOW_HEIGHT) :
                 # Remove asteroid, its timer, and velocity when the time is up
                 asteroid_positions.pop(i)
                 asteroid_velocities.pop(i)
@@ -302,6 +304,21 @@ while True:
             asteroid_sprite = pygame.sprite.Sprite()
             asteroid_sprite.rect = asteroid_rect
             asteroids_group.add(asteroid_sprite)
+
+
+        # Draw player
+        if direction == "right":
+            player = player_right
+        else:
+            player = player_left
+
+        screen.blit(player, player_rect)
+
+        health -= HEALTH_DECREASE_RATE * (elapsed_time / 1000.0)
+
+        # Cap the health value
+        if health > 1:
+            health = 1
 
         # Check for collision with asteroids
         if pygame.sprite.spritecollide(player_collision_sprite, asteroids_group, False):
@@ -320,26 +337,14 @@ while True:
             screen.blit(time_text, time_rect)
 
             pygame.display.flip()
+            asteroid_positions.clear()
+            asteroid_velocities.clear()
+            asteroid_timers.clear()
 
-            # Wait for a few seconds before quitting
-            pygame.time.delay(3000)  # 3000 milliseconds (3 seconds)
-            screen.fill(WHITE)
+            # Wait for a few seconds before going back to start screen
+            pygame.time.delay(3000)
+
             current_state = "start_screen"
-           # sys.exit()
-
-        # Draw player
-        if direction == "right":
-            player = player_right
-        else:
-            player = player_left
-
-        screen.blit(player, player_rect)
-
-        health -= HEALTH_DECREASE_RATE * (elapsed_time / 1000.0)
-
-        # Cap the health value
-        if health > 1:
-            health = 1
 
         # Draw health bar background
         pygame.draw.rect(screen, WHITE, (10, 10, 200, 30))
