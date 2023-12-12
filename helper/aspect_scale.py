@@ -1,6 +1,8 @@
 import sys
 import pygame
 
+# source code credit: https://github.com/ct-Open-Source/ct-net-tester/blob/master/aspect_scale.py
+
 def aspect_scale(img,bx,by):
     """ Scales 'img' to fit into box bx/by.
      This method will retain the original image's aspect ratio """
