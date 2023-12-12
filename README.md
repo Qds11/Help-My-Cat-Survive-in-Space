@@ -2,6 +2,9 @@
 
 Space Explorer is a simple Pygame where you control Nava, a lost cat in space. The objective is to survive as long as possible by collecting oxygen tanks and avoiding asteroids.
 
+## Game Trailer 
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](https://www.youtube.com/watch?v=32au9Zal20M )
+
 ## Instructions
 
 1. **Controls:**
